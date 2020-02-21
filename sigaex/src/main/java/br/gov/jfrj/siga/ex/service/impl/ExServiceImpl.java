@@ -1717,7 +1717,8 @@ public class ExServiceImpl implements ExService {
 				JSONObject d = new JSONObject();
 				d.put("referenciaPDF", arquivo.getReferenciaPDF());
 				d.put("referenciaPDFCompleto", arquivo.getReferenciaPDFCompleto());
-				d.put("lotacao", arquivo.getArquivo().getLotacao().getSigla());
+				DpLotacao dpLotacao = arquivo.getMobil().getDoc().getLotaCadastrante();
+				d.put("lotacao", dpLotacao != null ? dpLotacao.getSigla() : null);
 				d.put("pagina",arquivo.getPaginaInicial());
 				
 				d.put("data", arquivo.getData());
@@ -2212,8 +2213,8 @@ public class ExServiceImpl implements ExService {
     		
     		doc.setCadastrante(cadastrante);
     		doc.setLotaCadastrante(cadastrante.getLotacao());
-    		doc.setTitular(cadastrante);
-    		doc.setLotaTitular(cadastrante.getLotacao());
+    		doc.setTitular(subscritor);
+    		doc.setLotaTitular(subscritor.getLotacao());
     		
     		if(destinatarioStr != null) {
     			try {
@@ -2339,7 +2340,7 @@ public class ExServiceImpl implements ExService {
 			}
 			
     		doc = Ex.getInstance()
-			       .getBL().gravar(cadastrante, cadastrante, cadastrante.getLotacao(), doc);
+			       .getBL().gravar(cadastrante, subscritor, subscritor.getLotacao(), doc);
     		
     		if(finalizar)
     			Ex.getInstance().getBL().finalizar(cadastrante, cadastrante.getLotacao(), doc);
