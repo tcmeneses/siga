@@ -994,11 +994,8 @@ public class ExServiceImpl implements ExService {
     			if (mobPai != null) {
     	    		ExDocumento docPai = mobPai.getExDocumento();
     				
-    				if(docPai.getExMobilPai() != null)
-    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") já é documento filho.");
-    				
-    				if(docPai.isPendenteDeAssinatura())
-    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") ainda não foi assinado.");
+    				if(!docPai.isFinalizado())
+    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") ainda não foi finalizado.");
     				
     				doc.setExMobilPai(mobPai);
     			}
@@ -1522,11 +1519,8 @@ public class ExServiceImpl implements ExService {
     			if (mobPai != null) {
     	    		ExDocumento docPai = mobPai.getExDocumento();
     				
-    				if(docPai.getExMobilPai() != null)
-    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") já é documento filho.");
-    				
-    				if(docPai.isPendenteDeAssinatura())
-    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") ainda não foi assinado.");
+    	    		if(!docPai.isFinalizado())
+    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") ainda não foi finalizado.");
     				
     				doc.setExMobilPai(mobPai);
     			}
@@ -1712,8 +1706,16 @@ public class ExServiceImpl implements ExService {
 		try{
 			ExMobil mob = buscarMobil(sigla);
 			
+			if (mob.getDoc().isFinalizado()) {
+				if (mob.getDoc().isProcesso()) {
+					mob = mob.getDoc().getUltimoVolume();
+				} else {
+					mob = mob.getDoc().getPrimeiraVia();
+				}
+			}
+			
 			JSONArray dArray = new JSONArray();
-			for(ExArquivoNumerado arquivo : mob.getDoc().getUltimoVolume().getArquivosNumerados()){
+			for(ExArquivoNumerado arquivo : mob.getArquivosNumerados()){
 				JSONObject d = new JSONObject();
 				d.put("referenciaPDF", arquivo.getReferenciaPDF());
 				d.put("referenciaPDFCompleto", arquivo.getReferenciaPDFCompleto());
@@ -2035,7 +2037,7 @@ public class ExServiceImpl implements ExService {
 	}
 
 	@Override
-	public String criarDocumentoV2(String cadastranteStr, String subscritorStr,
+	public String criarAtualizarDocumento(String sigla, String cadastranteStr, String subscritorStr,
 			String destinatarioStr, String destinatarioCampoExtraStr,
 			String descricaoTipoDeDocumento, String nomeForma,
 			String nomeModelo, String classificacaoStr, String descricaoStr,
@@ -2056,7 +2058,20 @@ public class ExServiceImpl implements ExService {
     		DpPessoa destinatarioPessoa = null;
     		CpOrgao destinatarioOrgaoExterno = null;
     		
-    		ExDocumento doc = new ExDocumento();
+    		ExDocumento doc;
+    		ExMobil mob;
+    		
+    		if(sigla == null || sigla.isEmpty()){
+    			doc = new ExDocumento();
+    			mob = new ExMobil();
+    		}else{
+        		mob = buscarMobil(sigla);
+    			doc = mob.getDoc();
+    			if(doc.isAssinadoDigitalmente()){
+        			throw new AplicacaoException("O documento já foi assinado e não pode ser atualizado.");
+
+    			}
+    		}
     		
     		if(cadastranteStr == null || cadastranteStr.isEmpty())
     			throw new AplicacaoException("A matrícula do cadastrante não foi informada.");
@@ -2270,7 +2285,7 @@ public class ExServiceImpl implements ExService {
     			
     		doc.setExNivelAcesso(nivelDeAcesso);
     		
-    		ExMobil mob = new ExMobil();
+    		
 			mob.setExTipoMobil(dao().consultar(ExTipoMobil.TIPO_MOBIL_GERAL,
 					ExTipoMobil.class, false));
 			mob.setNumSequencia(1);
@@ -2283,12 +2298,10 @@ public class ExServiceImpl implements ExService {
     			ExMobil mobPai = (ExMobil) dao().consultarPorSigla(filter);
     			if (mobPai != null) {
     	    		ExDocumento docPai = mobPai.getExDocumento();
+    
+    				if(!docPai.isFinalizado())
+    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") ainda não foi finalizado.");
     				
-    				if(docPai.getExMobilPai() != null)
-    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") já é documento filho.");
-    				
-    				if(docPai.isPendenteDeAssinatura())
-    					throw new AplicacaoException("Não foi possível criar o documento pois o documento pai (" + docPai.getSigla() + ") ainda não foi assinado.");
     				
     				doc.setExMobilPai(mobPai);
     			}

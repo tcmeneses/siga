@@ -153,7 +153,7 @@ public interface ExService extends Remote {
 	public String listarPerfilVinculado(String sigla, String titular) throws Exception;
 	
 	@WebMethod
-	public String criarDocumentoV2(String cadastranteStr, String subscritorStr, String destinatarioStr, String destinatarioCampoExtraStr, String descricaoTipoDeDocumento, String nomeForma ,String nomeModelo, String classificacaoStr, 
+	public String criarAtualizarDocumento(String sigla, String cadastranteStr, String subscritorStr, String destinatarioStr, String destinatarioCampoExtraStr, String descricaoTipoDeDocumento, String nomeForma ,String nomeModelo, String classificacaoStr, 
 			String descricaoStr, Boolean eletronico, String nomeNivelDeAcesso, LinkedHashMap<String, String> campos, String siglaMobilPai, Boolean finalizar) throws Exception;
 	
 	
